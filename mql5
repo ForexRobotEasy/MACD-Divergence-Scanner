@@ -1,0 +1,171 @@
+mql5
+//+------------------------------------------------------------------+
+//|                                        MACD Divergence Scanner   |
+//|                                   Developer: Forex Robot Easy Team|
+//|                                   Website: forexroboteasy.com     |
+//+------------------------------------------------------------------+
+
+#property strict
+
+// Global variables
+datetime lastAlertTime = 0; // Time of the last alert
+bool isAlertActive = false; // Flag to check if alert is active
+
+//+------------------------------------------------------------------+
+//| Custom MACD Divergence Scanner Indicator                          |
+//+------------------------------------------------------------------+
+indicator MACD_Divergence_Scanner()
+{
+   // Calculate MACD values
+   int macdHandle = iMACD(_Symbol, _Period, 12, 26, 9, PRICE_CLOSE);
+   
+   // Calculate MACD values for the previous bar
+   double macdPrev = iMACD(_Symbol, _Period, 12, 26, 9, PRICE_CLOSE, 1);
+   
+   // Calculate MACD values for the current bar
+   double macdCurrent = iMACD(_Symbol, _Period, 12, 26, 9, PRICE_CLOSE, 0);
+   
+   // Check for bullish divergence
+   if(macdCurrent > 0 && macdPrev < 0)
+   {
+      // Generate an alert if no previous alert is active
+      if(!isAlertActive)
+      {
+         Alert('Bullish Divergence detected on ', _Symbol, ' ', _Period);
+         isAlertActive = true;
+         lastAlertTime = TimeCurrent();
+      }
+   }
+   
+   // Check for bearish divergence
+   if(macdCurrent < 0 && macdPrev > 0)
+   {
+      // Generate an alert if no previous alert is active
+      if(!isAlertActive)
+      {
+         Alert('Bearish Divergence detected on ', _Symbol, ' ', _Period);
+         isAlertActive = true;
+         lastAlertTime = TimeCurrent();
+      }
+   }
+   
+   // Reset the alert flag after 5 minutes
+   if(isAlertActive && TimeCurrent() - lastAlertTime >= 5 * 60)
+   {
+      isAlertActive = false;
+   }
+   
+   // Remove MACD handles from memory
+   IndicatorRelease(macdHandle);
+}
+
+//+------------------------------------------------------------------+
+//| Expert Advisor Start Function                                     |
+//+------------------------------------------------------------------+
+void OnTick()
+{
+   // Run the MACD Divergence Scanner indicator
+   MACD_Divergence_Scanner();
+}
+
+//+------------------------------------------------------------------+
+//| Expert Advisor Initialization Function                           |
+//+------------------------------------------------------------------+
+int OnInit()
+{
+   // Set the necessary indicator buffers
+   SetIndexBuffer(0, ExtMapBuffer1);
+   SetIndexBuffer(1, ExtMapBuffer2);
+   
+   // Define indicator properties
+   SetIndexStyle(0, DRAW_LINE);
+   SetIndexStyle(1, DRAW_LINE);
+   
+   // Set the indicator label
+   SetIndexLabel(0, 'Bullish Divergence');
+   SetIndexLabel(1, 'Bearish Divergence');
+   
+   return(INIT_SUCCEEDED);
+}
+
+//+------------------------------------------------------------------+
+//| Expert Advisor Deinitialization Function                         |
+//+------------------------------------------------------------------+
+void OnDeinit(const int reason)
+{
+   // Remove the indicator buffers
+   IndicatorBuffers(0);
+}
+
+//+------------------------------------------------------------------+
+//| Custom Function to Handle Error Messages                          |
+//+------------------------------------------------------------------+
+void HandleError(const string errorMsg)
+{
+   Print('Error: ', errorMsg);
+   Alert('Error: ', errorMsg);
+   ExpertRemove();
+}
+
+//+------------------------------------------------------------------+
+//| Custom Function to Handle Exceptions                              |
+//+------------------------------------------------------------------+
+void HandleException()
+{
+   Print('Exception occurred. Expert Advisor terminated.');
+   Alert('Exception occurred. Expert Advisor terminated.');
+   ExpertRemove();
+}
+
+//+------------------------------------------------------------------+
+//| Custom Function to Perform Testing                                |
+//+------------------------------------------------------------------+
+void PerformTesting()
+{
+   // Perform testing here
+}
+
+//+------------------------------------------------------------------+
+//| Custom Function to Generate Documentation                        |
+//+------------------------------------------------------------------+
+void GenerateDocumentation()
+{
+   // Generate documentation here
+}
+
+//+------------------------------------------------------------------+
+//| Custom Function to Display User Interface                         |
+//+------------------------------------------------------------------+
+void DisplayUserInterface()
+{
+   // Display user interface here
+}
+
+//+------------------------------------------------------------------+
+//| Main Function                                                     |
+//+------------------------------------------------------------------+
+void OnStart()
+{
+   try
+   {
+      // Perform necessary initialization
+      OnInit();
+      
+      // Display user interface
+      DisplayUserInterface();
+      
+      // Perform testing
+      PerformTesting();
+      
+      // Generate documentation
+      GenerateDocumentation();
+   }
+   catch(Exception& e)
+   {
+      HandleException();
+   }
+   catch(...)
+   {
+      HandleError('Unknown error occurred.');
+   }
+}
